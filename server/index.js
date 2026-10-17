@@ -2,10 +2,20 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { registerAuthRoutes, requireAuth } from './auth.js';
+import { initializeDatabase } from './db.js';
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean);
+app.use(cors({
+  origin(origin, callback) {
+    callback(null, !origin || allowedOrigins.includes(origin));
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '5mb' }));
 registerAuthRoutes(app);
 
@@ -45,4 +55,5 @@ app.post('/api/ask', requireAuth, async (req, res) => {
   }
 });
 
-app.listen(port, () => console.log(`Clarity API listening on http://localhost:${port}`));
+await initializeDatabase();
+app.listen(port, '0.0.0.0', () => console.log(`Clarity API listening on port ${port}`));

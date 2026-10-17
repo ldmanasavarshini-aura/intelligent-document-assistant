@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight, Check, Eye, EyeOff, FileText, LockKeyhole, Mail, ShieldCheck, Sparkles, Upload, X } from 'lucide-react';
+import { apiFetch } from './api.js';
 
 export default function Auth({ onAuthenticated }) {
   const [mode, setMode] = useState('login');
@@ -14,7 +15,7 @@ export default function Auth({ onAuthenticated }) {
   const submit = async event => {
     event.preventDefault(); setError(''); setBusy(true);
     try {
-      const response = await fetch(`/api/auth/${isSignup ? 'register' : 'login'}`, {
+      const response = await apiFetch(`/api/auth/${isSignup ? 'register' : 'login'}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
       });

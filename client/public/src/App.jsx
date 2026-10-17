@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Activity, ArrowDownToLine, ArrowLeft, ArrowRight, ArrowUp, BookOpen, Check, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Command, File, FileText, Files, FolderOpen, Gauge, Headphones, HelpCircle, Layers, Menu, MessageSquareText, MoreHorizontal, PanelLeftClose, Plus, Search, Send, Settings2, ShieldCheck, Sparkles, Upload, X } from 'lucide-react';
 import Auth from './Auth.jsx';
+import { apiFetch } from './api.js';
 
 const starterDocs = [
   { id: 'brief', name: 'Product strategy brief.pdf', type: 'PDF', size: '2.4 MB', updated: 'Just now', color: 'violet', content: `Product Strategy Brief — Q3 2025\n\nExecutive summary\nOur next quarter focuses on making onboarding effortless for small teams. We will prioritize a guided workspace setup, collaborative document comments, and faster search. The goal is to help a new team reach its first useful outcome within ten minutes.\n\nKey priorities\n1. Guided onboarding: introduce a five-step checklist and workspace templates. Target: improve activation from 42% to 58%.\n2. Collaboration: add inline comments and shared collections. Target: 30% more weekly team sessions.\n3. Search performance: reduce p95 query latency to under 400ms.\n\nTimeline\nJuly: onboarding research and prototype. August: private beta for collaboration. September: launch and measure activation.\n\nRisks\nThe team has limited design capacity. Search indexing costs may increase with larger workspaces. Mitigation: stage the rollout and monitor usage-based costs weekly.\n\nBudget\nEngineering: $180,000. Research and design: $45,000. Infrastructure: $24,000. Total: $249,000.` },
@@ -49,13 +50,13 @@ export default function App() {
   const fileRef = useRef(null);
   useEffect(() => {
     let current = true;
-    fetch('/api/auth/me').then(response => response.ok ? response.json() : null).then(result => { if (current) setUser(result?.user || null); }).catch(() => { if (current) setUser(null); }).finally(() => { if (current) setAuthReady(true); });
+    apiFetch('/api/auth/me').then(response => response.ok ? response.json() : null).then(result => { if (current) setUser(result?.user || null); }).catch(() => { if (current) setUser(null); }).finally(() => { if (current) setAuthReady(true); });
     return () => { current = false; };
   }, []);
   const activeDoc = documents.find(doc => doc.id === activeId) || documents[0];
   const filteredDocs = useMemo(() => documents.filter(doc => doc.name.toLowerCase().includes(query.toLowerCase())), [documents, query]);
   const showToast = message => { setToast(message); window.setTimeout(() => setToast(''), 2500); };
-  const signOut = async () => { try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {} finally { setUser(null); setMessages([]); } };
+  const signOut = async () => { try { await apiFetch('/api/auth/logout', { method: 'POST' }); } catch {} finally { setUser(null); setMessages([]); } };
 
   const handleFiles = async files => {
     for (const file of Array.from(files || [])) {
@@ -81,7 +82,7 @@ export default function App() {
     const clean = question.trim(); if (!clean || busy) return;
     setInput(''); setMessages(prev => [...prev, { role: 'user', text: clean }]); setBusy(true);
     try {
-      const response = await fetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: clean, document: { name: activeDoc.name, content: activeDoc.content } }) });
+      const response = await apiFetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ question: clean, document: { name: activeDoc.name, content: activeDoc.content } }) });
       if (!response.ok) throw new Error('Assistant unavailable');
       const result = await response.json(); setMessages(prev => [...prev, { role: 'assistant', text: result.answer, sources: result.sources || [] }]);
     } catch {
