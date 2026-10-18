@@ -2,6 +2,10 @@
 
 A document workspace with email/password accounts, file uploads, searchable documents, and grounded document chat with source excerpts and downloadable notes.
 
+## Tech Stack & Architecture
+
+For a comprehensive breakdown of the frontend, backend, database, AI engine, and deployment setup, see the [Technology Stack Documentation](file:///c:/Users/L.Deiviekan/intelligent-document-assistant/tech-stack/README.md).
+
 ## Run locally
 
 1. Install Node.js 18 or newer.
